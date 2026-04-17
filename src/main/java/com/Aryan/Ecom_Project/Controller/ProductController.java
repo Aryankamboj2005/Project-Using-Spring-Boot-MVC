@@ -4,8 +4,10 @@ import com.Aryan.Ecom_Project.Model.Product;
 import com.Aryan.Ecom_Project.Service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -37,4 +39,33 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    // Method to add a new product along with an image file
+    // @RequestPart is used because we are receiving two different parts: a JSON 'product' and a file 'imageFile'
+    @PostMapping("/product")
+    public ResponseEntity<?> addProduct(@RequestPart Product product,
+                                          @RequestPart MultipartFile imageFile) {
+        System.out.println("Received Product: " + product);
+        try{
+            // Hand the product and image to the Service layer for logic and saving
+            Product p1 = service.addProduct(product,imageFile);
+            return new ResponseEntity<>(p1, HttpStatus.CREATED); // Return the saved product with 201 Created status
+        }
+        catch (Exception e){
+            // If anything goes wrong, send the error message back to the frontend
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+    // Method to serve the image for a specific product
+    // It returns the raw byte array (the image) and tells the browser what type of image it is (jpeg, png, etc.)
+    @GetMapping("/product/{id}/image")
+    public ResponseEntity<byte[]> getImage(@PathVariable int id) {
+        Product product = service.getProductById(id);
+        byte[] imageData = product.getImageData();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(product.getImageType())) // Tell the browser "This is an image"
+                .body(imageData); // Send the actual image data
+    }
+
 }
