@@ -57,4 +57,9 @@ public class ProductService {
         }
         return repo.save(product);
     }
+
+    // Search functionality: calls the repository to find products matching the keyword
+    public List<Product> searchProduct(String keyword) {
+        return repo.searchProduct(keyword);
+    }
 }

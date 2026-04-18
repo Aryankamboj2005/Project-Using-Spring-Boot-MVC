@@ -96,5 +96,14 @@ public class ProductController {
 
 
     }
+    // This endpoint handles the search functionality based on a keyword
+    // @RequestParam extracts the value from the URL query (e.g., ?keyword=iphone)
+    @GetMapping("/products/search")
+    public ResponseEntity<List<Product>> getProductBySearch(@RequestParam String keyword) {
+        // Pass the extracted keyword to the service layer
+        List<Product> products = service.searchProduct(keyword);
+        // Return the list of matching products with HTTP 200 OK
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
 
 }
