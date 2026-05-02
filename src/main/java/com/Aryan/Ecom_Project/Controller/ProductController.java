@@ -64,6 +64,9 @@ public class ProductController {
     @GetMapping("/product/{id}/image")
     public ResponseEntity<byte[]> getImage(@PathVariable int id) {
         Product product = service.getProductById(id);
+        if (product == null || product.getImageData() == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         byte[] imageData = product.getImageData();
 
         return ResponseEntity.ok()
@@ -104,6 +107,14 @@ public class ProductController {
         List<Product> products = service.searchProduct(keyword);
         // Return the list of matching products with HTTP 200 OK
         return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserProfile(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.core.user.OAuth2User principal) {
+        if (principal == null) {
+            return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(principal.getAttributes(), HttpStatus.OK);
     }
 
 }
