@@ -16,11 +16,31 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disable CSRF for development if needed
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/products/**", "/api/product/**/image").permitAll() // Allow public access to products
-                .anyRequest().authenticated() // Secure other endpoints
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/product/*", "/api/product/*/image").permitAll() // Only allow GET requests publicly
+                .anyRequest().authenticated() // Secure everything else (POST, PUT, DELETE)
             )
-            .oauth2Login(Customizer.withDefaults()); // Enable LinkedIn OAuth2 login
+            .cors(Customizer.withDefaults()) // Enable CORS with default settings (mapped below)
+            .oauth2Login(oauth2 -> oauth2
+                .defaultSuccessUrl("http://localhost:5173", true) // Redirect to frontend after login
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("http://localhost:5173") // Redirect to frontend after logout
+                .permitAll()
+            );
         
         return http.build();
+    }
+    
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOrigins(java.util.Arrays.asList("http://localhost:5173", "http://localhost:3000")); // Vite and common React ports
+        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowCredentials(true);
+        
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
